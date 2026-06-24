@@ -6,12 +6,18 @@ from app.pipeline import run_report_analysis_pipeline
 
 @pytest.fixture
 def mock_llm_inference():
-    # Patch the run_gguf_inference helper to avoid loading actual 5GB GGUF models during unit tests
-    with patch("modules.llm.model_runner.run_gguf_inference") as mock:
-        mock.side_effect = lambda model_path, system_prompt, user_prompt, **kwargs: (
+    # Patch the run_gguf_inference helper at all its imported namespaces to avoid loading actual 5GB GGUF models during unit tests
+    with patch("modules.llm.llama_core.run_gguf_inference") as mock_llama, \
+         patch("modules.llm.meditron_layer.run_gguf_inference") as mock_meditron, \
+         patch("modules.llm.biomistral_refiner.run_gguf_inference") as mock_biomistral:
+        
+        mock_val = lambda model_path, system_prompt, user_prompt, **kwargs: (
             f"Mocked analysis response for model at: {os.path.basename(model_path)}"
         )
-        yield mock
+        mock_llama.side_effect = mock_val
+        mock_meditron.side_effect = mock_val
+        mock_biomistral.side_effect = mock_val
+        yield (mock_llama, mock_meditron, mock_biomistral)
 
 def test_pipeline_end_to_end(mock_llm_inference):
     # Create a temporary input report text file

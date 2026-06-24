@@ -1,5 +1,20 @@
 import os
 import sys
+import subprocess
+
+# -------------------------------------------------------------------------
+# Automatically resolve torchao compatibility crash in Google Colab environments
+# -------------------------------------------------------------------------
+try:
+    import torchao
+    # Parse version list, e.g. "0.10.0" -> [0, 10, 0]
+    ver = [int(x) for x in torchao.__version__.split(".") if x.isdigit()]
+    if ver < [0, 16, 0]:
+        print("[+] Detected incompatible torchao version on Colab. Uninstalling torchao to prevent PEFT crash...")
+        subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "torchao"], check=True)
+except Exception:
+    pass
+
 import torch
 from pathlib import Path
 from transformers import (

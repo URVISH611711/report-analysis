@@ -21,8 +21,15 @@ except ImportError:
 # ---------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------
-MODELS_DIR = Path("models")
-MODELS_DIR.mkdir(exist_ok=True)
+# Check if Google Drive is mounted (for Colab)
+colab_models_dir = Path("/content/drive/MyDrive/models")
+
+if Path("/content/drive/MyDrive").exists():
+    MODELS_DIR = colab_models_dir
+else:
+    MODELS_DIR = Path("models")
+
+MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
 MODELS = {
     "LLaMA-3-8B-Instruct": {
