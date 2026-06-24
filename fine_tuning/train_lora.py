@@ -44,8 +44,8 @@ def main():
 
     # Limit dataset size so training finishes within a single Colab session (~2 hrs)
     # Full dataset (16k samples) would take 40+ hours on a T4 GPU
-    MAX_TRAIN_SAMPLES = 2000
-    MAX_EVAL_SAMPLES = 200
+    MAX_TRAIN_SAMPLES = 500
+    MAX_EVAL_SAMPLES = 50
     train_dataset = dataset["train"].select(range(min(MAX_TRAIN_SAMPLES, len(dataset["train"]))))
     eval_dataset  = dataset["test"].select(range(min(MAX_EVAL_SAMPLES, len(dataset["test"]))))
     print(f"[+] Training on {len(train_dataset):,} samples | Evaluating on {len(eval_dataset):,} samples")
@@ -104,22 +104,22 @@ def main():
     training_args = SFTConfig(
         output_dir=str(OUTPUT_ADAPTERS_DIR),
         num_train_epochs=1,
-        per_device_train_batch_size=4,
-        gradient_accumulation_steps=2,
-        warmup_steps=50,
+        per_device_train_batch_size=1,
+        gradient_accumulation_steps=4,
+        warmup_steps=10,
         learning_rate=2e-4,
         bf16=True,
-        logging_steps=10,
+        logging_steps=5,
         eval_strategy="steps",
-        eval_steps=100,
+        eval_steps=50,
         save_strategy="steps",
-        save_steps=200,
+        save_steps=50,
         save_total_limit=2,
         lr_scheduler_type="cosine",
-        report_to="none",  # Prevents wandb login prompt
+        report_to="none",
         optim="paged_adamw_8bit",
         dataset_text_field="text",
-        max_length=1024,
+        max_length=256,
     )
     
     # 7. Initialize SFTTrainer
