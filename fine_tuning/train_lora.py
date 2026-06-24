@@ -92,9 +92,6 @@ def main():
         task_type="CAUSAL_LM"
     )
     
-    # Get PEFT model wrapper
-    model = get_peft_model(model, peft_config)
-    model.print_trainable_parameters()
     
     # 6. Training Arguments using SFTConfig
     # Optimized for a single Google Colab GPU (e.g. T4)
