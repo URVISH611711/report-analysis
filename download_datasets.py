@@ -26,8 +26,15 @@ except ImportError:
 # ---------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------
-BASE_DIR = Path("medical-datasets")
-BASE_DIR.mkdir(exist_ok=True)
+# Check if Google Drive is mounted (for Colab)
+colab_datasets_dir = Path("/content/drive/MyDrive/medical-datasets")
+
+if Path("/content/drive/MyDrive").exists():
+    BASE_DIR = colab_datasets_dir
+else:
+    BASE_DIR = Path("medical-datasets")
+
+BASE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Auto-load kaggle.json from project directory
 _KAGGLE_JSON = Path(__file__).parent / "kaggle.json"
