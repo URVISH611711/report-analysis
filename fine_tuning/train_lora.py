@@ -41,9 +41,15 @@ def main():
         
     print(f"[+] Loading processed dataset from: {PROCESSED_DATASET_DIR}")
     dataset = load_from_disk(str(PROCESSED_DATASET_DIR))
-    train_dataset = dataset["train"]
-    eval_dataset = dataset["test"]
-    
+
+    # Limit dataset size so training finishes within a single Colab session (~2 hrs)
+    # Full dataset (16k samples) would take 40+ hours on a T4 GPU
+    MAX_TRAIN_SAMPLES = 2000
+    MAX_EVAL_SAMPLES = 200
+    train_dataset = dataset["train"].select(range(min(MAX_TRAIN_SAMPLES, len(dataset["train"]))))
+    eval_dataset  = dataset["test"].select(range(min(MAX_EVAL_SAMPLES, len(dataset["test"]))))
+    print(f"[+] Training on {len(train_dataset):,} samples | Evaluating on {len(eval_dataset):,} samples")
+
     # 2. Tokenizer Setup
     print(f"[+] Initializing tokenizer for: {base_model_id}")
     tokenizer = AutoTokenizer.from_pretrained(base_model_id, trust_remote_code=True)
