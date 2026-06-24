@@ -9,7 +9,7 @@ from transformers import (
     TrainingArguments
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from trl import SFTTrainer
+from trl import SFTTrainer, SFTConfig
 from datasets import load_from_disk
 
 # Set paths
@@ -97,14 +97,14 @@ def main():
     model = get_peft_model(model, peft_config)
     model.print_trainable_parameters()
     
-    # 6. Training Arguments
+    # 6. Training Arguments using SFTConfig
     # Optimized for a single Google Colab GPU (e.g. T4)
-    training_args = TrainingArguments(
+    training_args = SFTConfig(
         output_dir=str(OUTPUT_ADAPTERS_DIR),
         num_train_epochs=1,
         per_device_train_batch_size=2,
         gradient_accumulation_steps=4,
-        warmup_ratio=0.03,
+        warmup_steps=100,
         learning_rate=2e-4,
         fp16=True,
         logging_steps=10,
@@ -115,7 +115,9 @@ def main():
         save_total_limit=2,
         lr_scheduler_type="cosine",
         report_to="none",  # Prevents wandb login prompt
-        optim="paged_adamw_32bit"
+        optim="paged_adamw_32bit",
+        dataset_text_field="text",
+        max_seq_length=1024,
     )
     
     # 7. Initialize SFTTrainer
@@ -125,8 +127,6 @@ def main():
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         peft_config=peft_config,
-        dataset_text_field="text",
-        max_seq_length=1024,
         tokenizer=tokenizer,
         args=training_args
     )
