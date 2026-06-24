@@ -5,8 +5,7 @@ from pathlib import Path
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    BitsAndBytesConfig,
-    TrainingArguments
+    BitsAndBytesConfig
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer, SFTConfig
@@ -127,7 +126,7 @@ def main():
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         peft_config=peft_config,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         args=training_args
     )
     
