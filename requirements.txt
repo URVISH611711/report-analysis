@@ -1,0 +1,26 @@
+# Inference and UI dependencies for Medical Report Analysis System
+# Install with: pip install -r requirements.txt
+
+# GGUF model runner (VRAM-efficient, supports CPU/GPU offload)
+llama-cpp-python==0.3.19
+
+# OCR / PDF extraction
+pymupdf>=1.23.0
+pytesseract>=0.3.10
+pillow>=10.0.0
+# Note: paddleocr may require manual installation steps on Windows:
+# pip install paddlepaddle
+# pip install paddleocr
+paddleocr>=2.7.3
+
+# Web Interface
+gradio>=4.20.0
+
+# Document Generator
+fpdf2>=2.7.8
+
+# Utilities
+python-dotenv>=1.0.1
+regex>=2023.12.25
+numpy>=1.26.0
+pytest>=8.0.0

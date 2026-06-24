@@ -1,0 +1,38 @@
+# === SECRETS (NEVER COMMIT THESE) ===
+kaggle.json
+.env
+*.key
+
+# === LARGE MODEL FILES ===
+models/
+*.gguf
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# === DATASETS (too large for GitHub) ===
+medical-datasets/
+data/
+
+# === PYTHON CACHE ===
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# === VIRTUAL ENVIRONMENTS ===
+venv/
+env/
+.venv/
+
+# === IDE & OS FILES ===
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# === FINE-TUNE OUTPUTS ===
+fine_tuning/output/
+fine_tuning/checkpoints/
