@@ -3,11 +3,17 @@ from pathlib import Path
 
 # Base Paths
 BASE_DIR = Path(__file__).parent.parent.resolve()
-MODELS_DIR = BASE_DIR / "models"
-DATA_DIR = BASE_DIR / "data"
 
-# Ensure directories exist
-MODELS_DIR.mkdir(exist_ok=True)
+# Check if Google Drive is mounted (for Colab)
+colab_models_dir = Path("/content/drive/MyDrive/models")
+
+if colab_models_dir.exists():
+    MODELS_DIR = colab_models_dir
+else:
+    MODELS_DIR = BASE_DIR / "models"
+    MODELS_DIR.mkdir(exist_ok=True)
+
+DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
 # ---------------------------------------------
