@@ -117,7 +117,7 @@ def main():
         report_to="none",  # Prevents wandb login prompt
         optim="paged_adamw_32bit",
         dataset_text_field="text",
-        max_seq_length=1024,
+        max_length=1024,
     )
     
     # 7. Initialize SFTTrainer
