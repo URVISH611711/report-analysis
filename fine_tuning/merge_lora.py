@@ -45,11 +45,14 @@ def main():
     print(f"[+] Loading base model ({base_model_id}) in FP16...")
     print("    Note: Models must be loaded in 16-bit to perform the weight merge.")
     
+    # Force loading entirely on GPU if available to prevent CPU offloading/meta-device errors during merge
+    device_map = {"": "cuda"} if torch.cuda.is_available() else "auto"
+    
     # Load base model in FP16 (needed for merging)
     base_model = AutoModelForCausalLM.from_pretrained(
         base_model_id,
         torch_dtype=torch.float16,
-        device_map="auto",
+        device_map=device_map,
         trust_remote_code=True
     )
     
