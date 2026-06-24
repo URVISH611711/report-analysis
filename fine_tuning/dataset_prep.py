@@ -5,7 +5,15 @@ from datasets import load_from_disk, Dataset, DatasetDict
 
 # Base directories
 BASE_DIR = Path(__file__).parent.parent.resolve()
-DATASETS_DIR = BASE_DIR / "medical-datasets"
+
+# Check if Google Drive is mounted and datasets exist there (for Colab)
+colab_datasets_dir = Path("/content/drive/MyDrive/medical-datasets")
+
+if colab_datasets_dir.exists():
+    DATASETS_DIR = colab_datasets_dir
+else:
+    DATASETS_DIR = BASE_DIR / "medical-datasets"
+
 OUTPUT_DIR = BASE_DIR / "fine_tuning" / "processed_dataset"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
