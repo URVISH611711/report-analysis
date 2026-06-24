@@ -15,7 +15,15 @@ from datasets import load_from_disk
 # Set paths
 BASE_DIR = Path(__file__).parent.parent.resolve()
 PROCESSED_DATASET_DIR = BASE_DIR / "fine_tuning" / "processed_dataset"
-OUTPUT_ADAPTERS_DIR = BASE_DIR / "fine_tuning" / "lora_adapters"
+
+# Check if Google Drive is mounted to save outputs safely
+colab_drive_path = Path("/content/drive/MyDrive/models")
+if colab_drive_path.exists():
+    OUTPUT_ADAPTERS_DIR = colab_drive_path / "fine_tuning" / "lora_adapters"
+else:
+    OUTPUT_ADAPTERS_DIR = BASE_DIR / "fine_tuning" / "lora_adapters"
+
+OUTPUT_ADAPTERS_DIR.mkdir(parents=True, exist_ok=True)
 
 def main():
     print("=" * 70)

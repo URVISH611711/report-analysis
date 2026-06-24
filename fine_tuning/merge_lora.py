@@ -5,8 +5,15 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
 
 BASE_DIR = Path(__file__).parent.parent.resolve()
-ADAPTERS_DIR = BASE_DIR / "fine_tuning" / "lora_adapters"
-OUTPUT_MERGED_DIR = BASE_DIR / "fine_tuning" / "merged_model"
+
+# Check if Google Drive is mounted to load adapters and save output safely
+colab_drive_path = Path("/content/drive/MyDrive/models")
+if colab_drive_path.exists():
+    ADAPTERS_DIR = colab_drive_path / "fine_tuning" / "lora_adapters"
+    OUTPUT_MERGED_DIR = colab_drive_path / "fine_tuning" / "merged_model"
+else:
+    ADAPTERS_DIR = BASE_DIR / "fine_tuning" / "lora_adapters"
+    OUTPUT_MERGED_DIR = BASE_DIR / "fine_tuning" / "merged_model"
 
 def main():
     print("=" * 70)
