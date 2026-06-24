@@ -98,8 +98,8 @@ def main():
     training_args = SFTConfig(
         output_dir=str(OUTPUT_ADAPTERS_DIR),
         num_train_epochs=1,
-        per_device_train_batch_size=1,
-        gradient_accumulation_steps=8,
+        per_device_train_batch_size=4,
+        gradient_accumulation_steps=2,
         warmup_steps=50,
         learning_rate=2e-4,
         bf16=True,
@@ -113,7 +113,7 @@ def main():
         report_to="none",  # Prevents wandb login prompt
         optim="paged_adamw_8bit",
         dataset_text_field="text",
-        max_length=512,
+        max_length=1024,
     )
     
     # 7. Initialize SFTTrainer
