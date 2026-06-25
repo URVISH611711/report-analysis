@@ -41,10 +41,21 @@ CONTEXT_WINDOW_DEFAULT = 2048
 DEFAULT_NORMAL_RANGES = {
     # Complete Blood Count (CBC)
     "hemoglobin": {"min": 12.0, "max": 17.5, "unit": "g/dL", "name": "Hemoglobin"},
-    "wbc": {"min": 4500, "max": 11000, "unit": "/µL", "name": "White Blood Cell Count (WBC)"},
+    "wbc": {"min": 4000, "max": 11000, "unit": "/µL", "name": "White Blood Cell Count (WBC)"},
     "platelets": {"min": 150000, "max": 450000, "unit": "/µL", "name": "Platelet Count"},
     "rbc": {"min": 4.0, "max": 5.9, "unit": "M/µL", "name": "Red Blood Cell Count (RBC)"},
     "hematocrit": {"min": 36.0, "max": 50.0, "unit": "%", "name": "Hematocrit"},
+    "mcv": {"min": 80.0, "max": 100.0, "unit": "fL", "name": "Mean Corpuscular Volume (MCV)"},
+    "mch": {"min": 27.0, "max": 32.0, "unit": "pg", "name": "Mean Corpuscular Hemoglobin (MCH)"},
+    "mchc": {"min": 32.0, "max": 36.0, "unit": "g/dL", "name": "Mean Corpuscular Hemoglobin Concentration (MCHC)"},
+    "rdw": {"min": 11.5, "max": 14.5, "unit": "%", "name": "Red Cell Distribution Width (RDW)"},
+    
+    # Differential Count
+    "neutrophils": {"min": 40.0, "max": 75.0, "unit": "%", "name": "Neutrophils"},
+    "lymphocytes": {"min": 20.0, "max": 45.0, "unit": "%", "name": "Lymphocytes"},
+    "eosinophils": {"min": 1.0, "max": 6.0, "unit": "%", "name": "Eosinophils"},
+    "monocytes": {"min": 2.0, "max": 10.0, "unit": "%", "name": "Monocytes"},
+    "basophils": {"min": 0.0, "max": 1.0, "unit": "%", "name": "Basophils"},
 
     # Metabolic & Renal
     "glucose_fasting": {"min": 70, "max": 99, "unit": "mg/dL", "name": "Fasting Blood Sugar"},

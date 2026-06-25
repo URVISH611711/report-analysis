@@ -4,19 +4,46 @@ from typing import Dict, Any
 # Map of parameter keys to regex patterns (case-insensitive)
 LAB_PATTERNS = {
     "hemoglobin": [
-        r'\b(?:hemoglobin|hb|hemo)\b.*?\b(\d+(?:\.\d+)?)\b',
+        r'\b(?:hemoglobin|haemoglobin|hb|hemo)\b.*?\b(\d+(?:\.\d+)?)\b',
     ],
     "wbc": [
-        r'\b(?:wbc|white blood cells?|white blood count|leukocytes?|leucocytes?)\b.*?\b(\d{1,3}(?:[.,]\d{3})*|\d+(?:\.\d+)?)\b',
+        r'\b(?:w\.?b\.?c\.?|white blood cells?|white blood count|leukocytes?|leucocytes?|tlc|total w\.?b\.?c\.?)\b.*?\b(\d{1,3}(?:[.,]\d{3})*|\d+(?:\.\d+)?)\b',
     ],
     "platelets": [
         r'\b(?:platelets?|plt|platelet count|thrombocytes?)\b.*?\b(\d{1,3}(?:[.,]\d{3})*|\d+(?:\.\d+)?)\b',
     ],
     "rbc": [
-        r'\b(?:rbc|red blood cells?|red blood count|erythrocytes?)\b.*?\b(\d+(?:\.\d+)?)\b',
+        r'\b(?:r\.?b\.?c\.?|red blood cells?|red blood count|erythrocytes?|total r\.?b\.?c\.?)\b.*?\b(\d+(?:\.\d+)?)\b',
     ],
     "hematocrit": [
         r'\b(?:hematocrit|hct|pcv|packed cell volume)\b.*?\b(\d+(?:\.\d+)?)\b',
+    ],
+    "mcv": [
+        r'\b(?:m\.?c\.?v\.?|mean corpuscular volume)\b.*?\b(\d+(?:\.\d+)?)\b',
+    ],
+    "mch": [
+        r'\b(?:m\.?c\.?h\.?|mean corpuscular hemoglobin)\b.*?\b(\d+(?:\.\d+)?)\b',
+    ],
+    "mchc": [
+        r'\b(?:m\.?c\.?h\.?c\.?|mean corpuscular hemoglobin concentration)\b.*?\b(\d+(?:\.\d+)?)\b',
+    ],
+    "rdw": [
+        r'\b(?:r\.?d\.?w\.?|red cell distribution width)\b.*?\b(\d+(?:\.\d+)?)\b',
+    ],
+    "neutrophils": [
+        r'\b(?:neutrophils?|polymorphs?|poly)\b.*?\b(\d+(?:\.\d+)?)\b',
+    ],
+    "lymphocytes": [
+        r'\b(?:lymphocytes?|lympho)\b.*?\b(\d+(?:\.\d+)?)\b',
+    ],
+    "eosinophils": [
+        r'\b(?:eosinophils?|eos)\b.*?\b(\d+(?:\.\d+)?)\b',
+    ],
+    "monocytes": [
+        r'\b(?:monocytes?|mono)\b.*?\b(\d+(?:\.\d+)?)\b',
+    ],
+    "basophils": [
+        r'\b(?:basophils?|baso)\b.*?\b(\d+(?:\.\d+)?)\b',
     ],
     "glucose_fasting": [
         r'\b(?:fasting blood sugar|fasting glucose|fbs|glucose\s*-\s*fasting|glucose\s*\(fasting\))\b.*?\b(\d+(?:\.\d+)?)\b',
