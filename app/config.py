@@ -25,8 +25,8 @@ LLAMA_MODEL_PATH = MODELS_DIR / "llama-3-8b-instruct" / "Meta-Llama-3-8B-Instruc
 # Meditron 7B (Clinical reasoning layer)
 MEDITRON_MODEL_PATH = MODELS_DIR / "meditron-7b" / "meditron-7b.Q4_K_M.gguf"
 
-# BioMistral 7B (Patient-friendly refiner)
-BIOMISTRAL_MODEL_PATH = MODELS_DIR / "biomistral" / "ggml-model-Q4_K_M.gguf"
+# BioMistral 7B (Fine-Tuned Patient-friendly refiner)
+BIOMISTRAL_MODEL_PATH = MODELS_DIR / "fine_tuning" / "BioMistral-Finetuned-Q4_K_M.gguf"
 
 # RTX 2050 (4GB VRAM) Optimization Defaults
 # Offload ~15-20 layers to GPU to stay within 4GB VRAM, rest runs on CPU.
