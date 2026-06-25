@@ -72,8 +72,12 @@ def main():
     merged_model = peft_model.merge_and_unload()
     
     print(f"[+] Saving merged model and tokenizer to local disk first to prevent I/O crash...")
-    # Save the unified model weights and configurations to the local fast disk
-    merged_model.save_pretrained(str(TEMP_SAVE_DIR))
+    # Force saving in small 2GB chunks. If we try to save 14GB at once, it instantly kills Colab's 12GB RAM.
+    merged_model.save_pretrained(
+        str(TEMP_SAVE_DIR),
+        max_shard_size="2GB",
+        safe_serialization=True
+    )
     tokenizer.save_pretrained(str(TEMP_SAVE_DIR))
     
     if TEMP_SAVE_DIR != OUTPUT_MERGED_DIR:
