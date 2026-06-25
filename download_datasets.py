@@ -14,6 +14,7 @@ No manual setup required.
 import os
 import sys
 import time
+import subprocess
 from pathlib import Path
 
 try:
@@ -158,9 +159,10 @@ def download_kaggle():
     out_path = BASE_DIR / "kaggle_labs"
     out_path.mkdir(exist_ok=True)
 
-    exit_code = os.system(
-        f'kaggle datasets download -d andrewmvd/medical-mnist -p "{out_path}" --unzip'
+    result = subprocess.run(
+        ["kaggle", "datasets", "download", "-d", "andrewmvd/medical-mnist", "-p", str(out_path), "--unzip"]
     )
+    exit_code = result.returncode
     if exit_code == 0:
         log(f"{name} saved -> {out_path}", "OK")
         results[name] = {"status": "OK", "rows": "N/A (images)", "path": str(out_path)}
