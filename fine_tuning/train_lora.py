@@ -31,10 +31,12 @@ BASE_DIR = Path(__file__).parent.parent.resolve()
 PROCESSED_DATASET_DIR = BASE_DIR / "fine_tuning" / "processed_dataset"
 
 # Check if Google Drive is mounted to save outputs safely
-colab_drive_path = Path("/content/drive/MyDrive/models")
-if colab_drive_path.exists():
+colab_drive_root = Path("/content/drive/MyDrive")
+if colab_drive_root.exists():
+    colab_drive_path = colab_drive_root / "models"
     OUTPUT_ADAPTERS_DIR = colab_drive_path / "fine_tuning" / "lora_adapters"
 else:
+    colab_drive_path = Path("") # Empty path
     OUTPUT_ADAPTERS_DIR = BASE_DIR / "fine_tuning" / "lora_adapters"
 
 OUTPUT_ADAPTERS_DIR.mkdir(parents=True, exist_ok=True)
@@ -156,6 +158,48 @@ def main():
     print(f"\n[SUCCESS] Training completed! Saving LoRA adapters to: {OUTPUT_ADAPTERS_DIR}")
     trainer.model.save_pretrained(str(OUTPUT_ADAPTERS_DIR))
     tokenizer.save_pretrained(str(OUTPUT_ADAPTERS_DIR))
+
+    # --- AUTO-MERGE IN THE LAST STEP ---
+    print("\n[+] Starting automatic LoRA adapter merging in the last step...")
+    try:
+        # Free up GPU/CPU memory from training before loading base model for merging
+        import gc
+        del trainer
+        del model
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        print("[+] Loading base model in FP16 for merging...")
+        device_map = {"": "cuda"} if torch.cuda.is_available() else "auto"
+        
+        base_model_for_merge = AutoModelForCausalLM.from_pretrained(
+            base_model_id,
+            torch_dtype=torch.float16,
+            device_map=device_map,
+            trust_remote_code=True
+        )
+
+        from peft import PeftModel
+        print(f"[+] Wrapping base model with adapters from: {OUTPUT_ADAPTERS_DIR}")
+        peft_model = PeftModel.from_pretrained(base_model_for_merge, str(OUTPUT_ADAPTERS_DIR))
+
+        print("[+] Merging adapter weights back into base model...")
+        merged_model = peft_model.merge_and_unload()
+
+        # Save to Google Drive if mounted, otherwise local base directory
+        if colab_drive_root.exists():
+            merged_dir = colab_drive_path / "fine_tuning" / "merged_model"
+        else:
+            merged_dir = BASE_DIR / "fine_tuning" / "merged_model"
+
+        print(f"[+] Saving merged model and tokenizer to: {merged_dir.resolve()}")
+        merged_model.save_pretrained(str(merged_dir))
+        tokenizer.save_pretrained(str(merged_dir))
+        print("\n[SUCCESS] Unified fine-tuned model saved successfully!")
+    except Exception as e:
+        print(f"\n[ERROR] Automatic merge failed: {e}")
+        print("You can run the merge manually using fine_tuning/merge_lora.py later.")
 
 if __name__ == "__main__":
     main()

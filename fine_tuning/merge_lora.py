@@ -22,8 +22,9 @@ from peft import PeftModel
 BASE_DIR = Path(__file__).parent.parent.resolve()
 
 # Check if Google Drive is mounted to load adapters and save output safely
-colab_drive_path = Path("/content/drive/MyDrive/models")
-if colab_drive_path.exists():
+colab_drive_root = Path("/content/drive/MyDrive")
+if colab_drive_root.exists():
+    colab_drive_path = colab_drive_root / "models"
     ADAPTERS_DIR = colab_drive_path / "fine_tuning" / "lora_adapters"
     OUTPUT_MERGED_DIR = colab_drive_path / "fine_tuning" / "merged_model"
 else:
