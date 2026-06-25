@@ -54,7 +54,8 @@ def main():
         base_model_id,
         torch_dtype=torch.float16,
         device_map=device_map,
-        trust_remote_code=True
+        trust_remote_code=True,
+        offload_folder="offload_dir"
     )
     
     # Load tokenizer
