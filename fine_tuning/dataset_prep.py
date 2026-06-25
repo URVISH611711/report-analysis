@@ -100,6 +100,43 @@ def prep_chatdoctor():
         processed.append(entry)
     return processed
 
+def prep_medmcqa():
+    print("[PREP] Processing MedMCQA...")
+    dataset_path = DATASETS_DIR / "medmcqa"
+    if not dataset_path.exists():
+        print("[PREP] MedMCQA not found. Skipping.")
+        return []
+        
+    ds = load_from_disk(str(dataset_path))
+    processed = []
+    # MedMCQA has 'train' split
+    # Select first 5000 rows to keep training time reasonable on Colab T4
+    if "train" in ds:
+        subset = ds["train"].select(range(min(5000, len(ds["train"]))))
+        for row in subset:
+            question = row.get("question", "")
+            opa = row.get("opa", "")
+            opb = row.get("opb", "")
+            opc = row.get("opc", "")
+            opd = row.get("opd", "")
+            exp = row.get("exp", "")
+            cop = row.get("cop", "") # Correct option (1=A, 2=B, 3=C, 4=D)
+            
+            options = f"A: {opa}\nB: {opb}\nC: {opc}\nD: {opd}"
+            
+            ans_map = {1: 'A', 2: 'B', 3: 'C', 4: 'D'}
+            ans_letter = ans_map.get(cop, 'A')
+            
+            answer = f"The correct answer is {ans_letter}. {exp}".strip()
+            
+            entry = format_instruction(
+                instruction=f"Solve this multiple-choice medical question:\n{question}",
+                input_val=options,
+                response=answer
+            )
+            processed.append(entry)
+    return processed
+
 def main():
     print("=" * 70)
     print("  [+] Fine-Tuning - Dataset Preparation Utility")
@@ -109,6 +146,7 @@ def main():
     
     # Process and append each dataset
     all_records.extend(prep_pubmedqa())
+    all_records.extend(prep_medmcqa())
     all_records.extend(prep_medqa())
     all_records.extend(prep_chatdoctor())
     
