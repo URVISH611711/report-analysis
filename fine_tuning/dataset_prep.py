@@ -137,6 +137,31 @@ def prep_medmcqa():
             processed.append(entry)
     return processed
 
+def prep_healthcaremagic():
+    print("[PREP] Processing HealthCareMagic...")
+    dataset_path = DATASETS_DIR / "healthcaremagic"
+    if not dataset_path.exists():
+        print("[PREP] HealthCareMagic not found. Skipping.")
+        return []
+        
+    ds = load_from_disk(str(dataset_path))
+    processed = []
+    # HealthCareMagic has 'train' split
+    if "train" in ds:
+        subset = ds["train"].select(range(min(5000, len(ds["train"]))))
+        for row in subset:
+            instruction = row.get("instruction", "Medical Inquiry")
+            input_val = row.get("input", "")
+            response = row.get("output", "")
+            
+            entry = format_instruction(
+                instruction=instruction,
+                input_val=input_val,
+                response=response
+            )
+            processed.append(entry)
+    return processed
+
 def main():
     print("=" * 70)
     print("  [+] Fine-Tuning - Dataset Preparation Utility")
@@ -149,6 +174,7 @@ def main():
     all_records.extend(prep_medmcqa())
     all_records.extend(prep_medqa())
     all_records.extend(prep_chatdoctor())
+    all_records.extend(prep_healthcaremagic())
     
     if not all_records:
         print("[ERROR] No raw datasets found to process. Please run download_datasets.py first.")
