@@ -13,11 +13,17 @@ pillow>=10.0.0
 # pip install paddleocr
 paddleocr>=2.7.3
 
+# Image preprocessing (deskew, contrast enhancement, thresholding)
+opencv-python>=4.8.0
+
 # Web Interface
 gradio>=4.20.0
 
 # Document Generator
 fpdf2>=2.7.8
+
+# Data handling
+pandas>=2.0.0
 
 # Utilities
 python-dotenv>=1.0.1

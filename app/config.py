@@ -32,7 +32,8 @@ BIOMISTRAL_MODEL_PATH = MODELS_DIR / "biomistral" / "ggml-model-Q4_K_M.gguf"
 # Offload ~15-20 layers to GPU to stay within 4GB VRAM, rest runs on CPU.
 # Set to 0 to run entirely on CPU.
 GPU_LAYERS_DEFAULT = 15
-CONTEXT_WINDOW_DEFAULT = 2048
+CONTEXT_WINDOW_DEFAULT = 4096
+MAX_TOKENS_DEFAULT = 2048
 
 # ---------------------------------------------
 # Reference Lab Ranges (Default Reference Values)

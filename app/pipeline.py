@@ -9,7 +9,7 @@ from modules.ocr.tesseract_ocr import extract_text_using_tesseract
 
 # Import Parser sub-modules
 from modules.parser.text_cleaner import clean_ocr_text
-from modules.parser.lab_parser import parse_lab_values
+from modules.parser.lab_parser import parse_lab_values, extract_reference_ranges
 from modules.parser.range_tagger import tag_extracted_values
 
 # Import LLM sub-modules
@@ -21,6 +21,9 @@ from modules.llm.biomistral_refiner import run_biomistral_refinement
 from modules.output.formatter import format_final_report
 from modules.output.pdf_generator import generate_pdf_report
 
+# Import fallback extractor
+from modules.parser.llm_extractor import extract_values_via_llm
+
 def run_report_analysis_pipeline(
     file_path: str,
     output_pdf_path: str = None,
@@ -30,6 +33,12 @@ def run_report_analysis_pipeline(
 ) -> Tuple[Dict[str, Any], str]:
     """
     Main orchestrator that runs the entire 6-module sequential medical pipeline.
+    
+    Enhanced with:
+    - OCR quality validation
+    - LLM-based fallback extraction when regex fails
+    - Raw OCR text passed to all LLM stages for cross-checking
+    - Structured logging with extraction counts per stage
     
     Returns:
         tuple: (final_report_dict, output_pdf_filepath)
@@ -54,12 +63,8 @@ def run_report_analysis_pipeline(
             ocr_method = "fitz-native-pdf"
         else:
             print("[PIPELINE] Scanned PDF detected. Running OCR on pages...")
-            # For simplicity, convert PDF to images and run Paddle.
-            # In a basic pipeline, we fallback to PyMuPDF rendering or run Tesseract.
-            # Here we'll treat it as image fallback using Tesseract or Paddle directly if images.
-            # Let's write image extractor later, for now we run Paddle OCR on the document path.
             raw_text = extract_text_using_paddle(str(path))
-            if not raw_text or raw_text.startswith("[WARN]"):
+            if not raw_text or raw_text.startswith("[WARN]") or raw_text.startswith("[ERROR]"):
                 raw_text = extract_text_using_tesseract(str(path))
             ocr_method = "pdf-ocr"
     elif ext in [".png", ".jpg", ".jpeg", ".bmp", ".tiff"]:
@@ -77,9 +82,24 @@ def run_report_analysis_pipeline(
         print("[PIPELINE] Plain text file detected.")
         raw_text = path.read_text(encoding="utf-8", errors="ignore")
         ocr_method = "plain-text-reader"
-        
-    if not raw_text.strip():
-        raise ValueError("Could not extract any text from the input report.")
+    
+    # --- OCR Quality Validation ---
+    if not raw_text or raw_text.startswith("[WARN]") or raw_text.startswith("[ERROR]"):
+        raise ValueError(f"Could not extract any text from the input report. OCR method: {ocr_method}")
+    
+    text_length = len(raw_text.strip())
+    if text_length < 30:
+        print(f"[PIPELINE] WARNING: OCR extracted only {text_length} chars — quality may be very low.")
+        # Try alternate OCR if not already tried
+        if ocr_method == "paddle-ocr":
+            print("[PIPELINE] Retrying with Tesseract as primary...")
+            alt_text = extract_text_using_tesseract(str(path))
+            if len(alt_text.strip()) > text_length and not alt_text.startswith("["):
+                raw_text = alt_text
+                ocr_method = "tesseract-ocr-quality-retry"
+                print(f"[PIPELINE] Tesseract retry yielded {len(raw_text.strip())} chars")
+    
+    print(f"[PIPELINE] OCR complete ({ocr_method}): extracted {len(raw_text.strip())} characters")
         
     # ---------------------------------------------
     # Step 2: Clean Text & Normalize Units
@@ -92,22 +112,52 @@ def run_report_analysis_pipeline(
     # ---------------------------------------------
     print("[PIPELINE] Extracting lab values using Regex parser...")
     parsed_values = parse_lab_values(clean_text)
+    print(f"[PIPELINE] Regex parser extracted {len(parsed_values)} parameters: {list(parsed_values.keys())}")
+    
+    # --- LLM Fallback Extraction ---
+    extraction_method = "regex"
+    if len(parsed_values) < 3:
+        print(f"[PIPELINE] Regex found only {len(parsed_values)} values (< 3 threshold). Triggering LLM fallback extraction...")
+        llm_extracted = extract_values_via_llm(clean_text, gpu_layers=gpu_layers)
+        
+        if llm_extracted:
+            # Merge: regex results take priority, LLM fills in gaps
+            for key, value in llm_extracted.items():
+                if key not in parsed_values:
+                    parsed_values[key] = value
+            
+            extraction_method = "hybrid" if len(parsed_values) > len(llm_extracted) else "llm-fallback"
+            print(f"[PIPELINE] After LLM fallback: {len(parsed_values)} total parameters")
     
     if not parsed_values:
-        print("[PIPELINE] Warning: Regex parser did not find any matching medical parameters.")
+        print("[PIPELINE] Warning: No lab parameters found by any extraction method.")
+    
+    # --- Extract reference ranges from report text ---
+    report_ranges = extract_reference_ranges(clean_text)
+    if report_ranges:
+        print(f"[PIPELINE] Extracted {len(report_ranges)} reference ranges from report text")
         
     # ---------------------------------------------
     # Step 4: Tag Normal / Abnormal Values
     # ---------------------------------------------
     print("[PIPELINE] Checking reference ranges and tagging status...")
-    tagged_values = tag_extracted_values(parsed_values)
+    tagged_values = tag_extracted_values(parsed_values, report_ranges=report_ranges)
+    
+    # Log extraction summary
+    abnormal_count = sum(1 for v in tagged_values.values() if v["status"] in ["HIGH", "LOW"])
+    normal_count = sum(1 for v in tagged_values.values() if v["status"] == "NORMAL")
+    print(f"[PIPELINE] Tagged {len(tagged_values)} values: {abnormal_count} abnormal, {normal_count} normal")
     
     # ---------------------------------------------
     # Step 5: AI Analysis Stack (LLM Sequential Execution)
     # ---------------------------------------------
     # Step 5.1: LLaMA 3 8B Core reasoning
     print("[PIPELINE] Running LLaMA 3 8B Core clinical reasoning...")
-    llama_analysis = run_llama_analysis(tagged_values, gpu_layers=gpu_layers)
+    llama_analysis = run_llama_analysis(
+        tagged_values,
+        raw_ocr_text=clean_text,
+        gpu_layers=gpu_layers
+    )
     
     # Step 5.2: Meditron 7B Clinical enhancer (Optional)
     if not skip_meditron:
@@ -115,6 +165,7 @@ def run_report_analysis_pipeline(
         meditron_analysis = run_meditron_enhancement(
             tagged_values,
             llama_analysis,
+            raw_ocr_text=clean_text,
             gpu_layers=gpu_layers
         )
     else:
@@ -144,7 +195,8 @@ def run_report_analysis_pipeline(
         tagged_values=tagged_values,
         llama_analysis=llama_analysis,
         meditron_analysis=meditron_analysis,
-        biomistral_analysis=biomistral_analysis
+        biomistral_analysis=biomistral_analysis,
+        extraction_method=extraction_method
     )
     
     # Generate Output PDF if path is provided
