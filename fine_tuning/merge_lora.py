@@ -27,9 +27,11 @@ if colab_drive_root.exists():
     colab_drive_path = colab_drive_root / "models"
     ADAPTERS_DIR = colab_drive_path / "fine_tuning" / "lora_adapters"
     OUTPUT_MERGED_DIR = colab_drive_path / "fine_tuning" / "merged_model"
+    TEMP_SAVE_DIR = Path("/content/merged_model_temp")
 else:
     ADAPTERS_DIR = BASE_DIR / "fine_tuning" / "lora_adapters"
     OUTPUT_MERGED_DIR = BASE_DIR / "fine_tuning" / "merged_model"
+    TEMP_SAVE_DIR = OUTPUT_MERGED_DIR
 
 def main():
     print("=" * 70)
@@ -69,10 +71,17 @@ def main():
     # Merge weights and unload PEFT wrapper
     merged_model = peft_model.merge_and_unload()
     
-    print(f"[+] Saving merged model and tokenizer to: {OUTPUT_MERGED_DIR.resolve()}")
-    # Save the unified model weights and configurations
-    merged_model.save_pretrained(str(OUTPUT_MERGED_DIR))
-    tokenizer.save_pretrained(str(OUTPUT_MERGED_DIR))
+    print(f"[+] Saving merged model and tokenizer to local disk first to prevent I/O crash...")
+    # Save the unified model weights and configurations to the local fast disk
+    merged_model.save_pretrained(str(TEMP_SAVE_DIR))
+    tokenizer.save_pretrained(str(TEMP_SAVE_DIR))
+    
+    if TEMP_SAVE_DIR != OUTPUT_MERGED_DIR:
+        print(f"[+] Transferring saved model to Google Drive: {OUTPUT_MERGED_DIR.resolve()}")
+        import shutil
+        OUTPUT_MERGED_DIR.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(str(TEMP_SAVE_DIR), str(OUTPUT_MERGED_DIR), dirs_exist_ok=True)
+        print("[+] Transfer complete!")
     
     print("\n[SUCCESS] Unified fine-tuned model saved successfully!")
     print("    You can now convert this folder to GGUF format or deploy it directly.")
